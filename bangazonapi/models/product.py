@@ -63,7 +63,7 @@ class Product(SafeDeleteModel):
             total_rating += rating.rating
         if len(ratings):
             avg = total_rating / len(ratings)
-        return avg
+            return avg
 
     class Meta:
         verbose_name = ("product")
