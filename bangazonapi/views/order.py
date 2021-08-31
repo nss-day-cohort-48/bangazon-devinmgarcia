@@ -36,6 +36,7 @@ class OrderSerializer(serializers.HyperlinkedModelSerializer):
             lookup_field='id'
         )
         fields = ('id', 'url', 'created_date', 'payment_type', 'customer', 'lineitems')
+        depth = 1
 
 
 class Orders(ViewSet):
@@ -104,7 +105,8 @@ class Orders(ViewSet):
         """
         customer = Customer.objects.get(user=request.auth.user)
         order = Order.objects.get(pk=pk, customer=customer)
-        order.payment_type = request.data["payment_type"]
+        payment = Payment.objects.get(pk=request.data["payment_type_id"])
+        order.payment_type = payment
         order.save()
 
         return Response({}, status=status.HTTP_204_NO_CONTENT)
