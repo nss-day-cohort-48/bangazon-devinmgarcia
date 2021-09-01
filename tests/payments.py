@@ -18,7 +18,6 @@ class PaymentTests(APITestCase):
         self.token = json_response["token"]
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-        url = "/paymenttypes"
         payment_type = Payment.objects.create(
              merchant_name = "American Express",
             account_number = "111-1111-1111",
