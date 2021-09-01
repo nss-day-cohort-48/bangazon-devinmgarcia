@@ -2,6 +2,7 @@ import datetime
 import json
 from rest_framework import status
 from rest_framework.test import APITestCase
+from bangazonapi.models import Payment
 
 
 class PaymentTests(APITestCase):
@@ -16,6 +17,17 @@ class PaymentTests(APITestCase):
         json_response = json.loads(response.content)
         self.token = json_response["token"]
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        url = "/paymenttypes"
+        payment_type = Payment.objects.create(
+             merchant_name = "American Express",
+            account_number = "111-1111-1111",
+            expiration_date = "2024-12-31",
+            create_date = datetime.date.today(),
+            customer_id = 1
+        )
+      
+        
 
 
     def test_create_payment_type(self):
@@ -45,7 +57,6 @@ class PaymentTests(APITestCase):
         Ensure we can delete an existing payment type.
         """
         url = "/paymenttypes/1"
-        self.test_create_payment_type()
 
         self.client.credentials(HTTP_AUTHORIZATION='Token ' + self.token)
         response = self.client.delete(url)
