@@ -1,4 +1,5 @@
 """View module for handling requests about products"""
+from bangazonapi.models.favorite import Favorite
 from rest_framework.decorators import action
 from bangazonapi.models.recommendation import Recommendation
 import base64
@@ -8,7 +9,7 @@ from rest_framework.viewsets import ViewSet
 from rest_framework.response import Response
 from rest_framework import serializers
 from rest_framework import status
-from bangazonapi.models import Product, Customer, ProductCategory
+from bangazonapi.models import Product, Customer, ProductCategory, Favorite
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.parsers import MultiPartParser, FormParser
 
@@ -293,3 +294,31 @@ class Products(ViewSet):
             return Response(None, status=status.HTTP_204_NO_CONTENT)
 
         return Response(None, status=status.HTTP_405_METHOD_NOT_ALLOWED)
+
+    @action(methods=['post', 'delete', 'get'], detail=True)
+    def like(self, request, pk=None):
+        """Recommend products to other users"""
+
+        if request.method == "POST":
+            try:
+                customer = Customer.objects.get(user=request.auth.user)
+                seller = Customer.objects.get(pk=pk)
+                Favorite.objects.create(
+                    customer = customer,
+                    seller = seller
+                )
+                return Response(None, status=status.HTTP_204_NO_CONTENT)
+            except Exception as ex:
+                return Response({'message': ex.args[0]})
+        # elif request.method == "DELETE":
+        #     try:
+        #         favorite = Favorite.objects.get(pk=pk)
+        #         return Response(None, status=status.HTTP_204_NO_CONTENT)
+        #     except Exception as ex:
+        #         return Response({'message': ex.args[0]})
+
+
+
+            
+
+        
