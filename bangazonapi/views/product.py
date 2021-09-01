@@ -23,6 +23,11 @@ class ProductSerializer(serializers.ModelSerializer):
                   'average_rating', 'can_be_rated', )
         depth = 1
 
+class FavoriteSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Favorite
+        fields = ('id', 'customer_id', 'seller_id')
+
 
 class Products(ViewSet):
     """Request handlers for Products in the Bangazon Platform"""
@@ -295,7 +300,7 @@ class Products(ViewSet):
 
         return Response(None, status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
-    @action(methods=['post', 'delete', 'get'], detail=True)
+    @action(methods=['post', 'delete'], detail=True)
     def like(self, request, pk=None):
         """Recommend products to other users"""
 
@@ -310,12 +315,27 @@ class Products(ViewSet):
                 return Response(None, status=status.HTTP_204_NO_CONTENT)
             except Exception as ex:
                 return Response({'message': ex.args[0]})
-        # elif request.method == "DELETE":
-        #     try:
-        #         favorite = Favorite.objects.get(pk=pk)
-        #         return Response(None, status=status.HTTP_204_NO_CONTENT)
-        #     except Exception as ex:
-        #         return Response({'message': ex.args[0]})
+        elif request.method == "DELETE":
+            try:
+                favorite = Favorite.objects.get(pk=pk)
+                favorite.delete()
+                return Response(None, status=status.HTTP_204_NO_CONTENT)
+            except Exception as ex:
+                return Response({'message': ex.args[0]})
+
+    @action(methods=['get'], detail=False)
+    def liked(self, request):
+        """Recommend products to other users"""
+
+        if request.method == "GET":
+            try:
+                customer = Customer.objects.get(user=request.auth.user)
+                favorites = Favorite.objects.filter(customer__id=customer.id)
+                serializer = FavoriteSerializer(favorites, many=True, context={'request': request})
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            except Exception as ex:
+                return Response({'message': ex.args[0]})
+   
 
 
 
