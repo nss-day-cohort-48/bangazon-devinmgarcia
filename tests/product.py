@@ -117,6 +117,7 @@ class ProductTests(APITestCase):
         Ensure we can delete an existing product.
         """
         url = "/products/1"
+
         self.client.credentials(HTTP_AUTHORIZATION='Token ' + self.token)
         response = self.client.delete(url)
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
