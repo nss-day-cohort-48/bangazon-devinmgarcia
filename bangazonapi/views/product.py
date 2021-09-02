@@ -9,7 +9,7 @@ from rest_framework.viewsets import ViewSet
 from rest_framework.response import Response
 from rest_framework import serializers
 from rest_framework import status
-from bangazonapi.models import Product, Customer, ProductCategory, Favorite
+from bangazonapi.models import Product, Customer, ProductCategory, CustomerProductLike
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.parsers import MultiPartParser, FormParser
 
@@ -23,10 +23,14 @@ class ProductSerializer(serializers.ModelSerializer):
                   'average_rating', 'can_be_rated', )
         depth = 1
 
-class FavoriteSerializer(serializers.ModelSerializer):
+class CustomerProductLikesSerializer(serializers.ModelSerializer):
+
+    product = ProductSerializer(many=False)
+
     class Meta:
-        model = Favorite
-        fields = ('id', 'customer_id', 'seller_id')
+        model = CustomerProductLike
+        fields = ('id', 'customer_id', 'product')
+        depth = 2
 
 
 class Products(ViewSet):
@@ -307,19 +311,29 @@ class Products(ViewSet):
         if request.method == "POST":
             try:
                 customer = Customer.objects.get(user=request.auth.user)
-                seller = Customer.objects.get(pk=pk)
-                Favorite.objects.create(
-                    customer = customer,
-                    seller = seller
-                )
-                return Response(None, status=status.HTTP_204_NO_CONTENT)
+                product = Product.objects.get(pk=pk)
+                all_customer_likes = CustomerProductLike.objects.filter(customer_id=customer.id)
+                try:
+                    like = all_customer_likes.get(product_id=pk)
+                except:
+                    like = False
+                if not like:
+                    CustomerProductLike.objects.create(
+                        customer = customer,
+                        product = product
+                    )
+                    return Response(None, status=status.HTTP_201_CREATED)
+                else:
+                    return Response({"message":"Product already liked"}, status=status.HTTP_204_NO_CONTENT)
             except Exception as ex:
                 return Response({'message': ex.args[0]})
         elif request.method == "DELETE":
             try:
-                favorite = Favorite.objects.get(pk=pk)
-                favorite.delete()
-                return Response(None, status=status.HTTP_204_NO_CONTENT)
+                customer = Customer.objects.get(user=request.auth.user)
+                all_customer_likes = CustomerProductLike.objects.filter(customer_id=customer.id)
+                like = all_customer_likes.get(product_id=pk)
+                like.delete()     
+                return Response({}, status=status.HTTP_204_NO_CONTENT)                        
             except Exception as ex:
                 return Response({'message': ex.args[0]})
 
@@ -330,8 +344,8 @@ class Products(ViewSet):
         if request.method == "GET":
             try:
                 customer = Customer.objects.get(user=request.auth.user)
-                favorites = Favorite.objects.filter(customer__id=customer.id)
-                serializer = FavoriteSerializer(favorites, many=True, context={'request': request})
+                all_customer_likes = CustomerProductLike.objects.filter(customer_id=customer.id)
+                serializer = CustomerProductLikesSerializer(all_customer_likes, many=True, context={'request': request})
                 return Response(serializer.data, status=status.HTTP_200_OK)
             except Exception as ex:
                 return Response({'message': ex.args[0]})
