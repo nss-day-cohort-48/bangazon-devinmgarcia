@@ -1,4 +1,5 @@
 """View module for handling requests about products"""
+from bangazonapi.models.favorite import Favorite
 from rest_framework.decorators import action
 from bangazonapi.models.recommendation import Recommendation
 import base64
@@ -8,7 +9,7 @@ from rest_framework.viewsets import ViewSet
 from rest_framework.response import Response
 from rest_framework import serializers
 from rest_framework import status
-from bangazonapi.models import Product, Customer, ProductCategory
+from bangazonapi.models import Product, Customer, ProductCategory, CustomerProductLike
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.parsers import MultiPartParser, FormParser
 
@@ -21,6 +22,15 @@ class ProductSerializer(serializers.ModelSerializer):
                   'quantity', 'created_date', 'location', 'image_path',
                   'average_rating', 'can_be_rated', )
         depth = 1
+
+class CustomerProductLikesSerializer(serializers.ModelSerializer):
+
+    product = ProductSerializer(many=False)
+
+    class Meta:
+        model = CustomerProductLike
+        fields = ('id', 'customer_id', 'product')
+        depth = 2
 
 
 class Products(ViewSet):
@@ -293,3 +303,56 @@ class Products(ViewSet):
             return Response(None, status=status.HTTP_204_NO_CONTENT)
 
         return Response(None, status=status.HTTP_405_METHOD_NOT_ALLOWED)
+
+    @action(methods=['post', 'delete'], detail=True)
+    def like(self, request, pk=None):
+        """Recommend products to other users"""
+
+        if request.method == "POST":
+            try:
+                customer = Customer.objects.get(user=request.auth.user)
+                product = Product.objects.get(pk=pk)
+                all_customer_likes = CustomerProductLike.objects.filter(customer_id=customer.id)
+                try:
+                    like = all_customer_likes.get(product_id=pk)
+                except:
+                    like = False
+                if not like:
+                    CustomerProductLike.objects.create(
+                        customer = customer,
+                        product = product
+                    )
+                    return Response(None, status=status.HTTP_201_CREATED)
+                else:
+                    return Response({"message":"Product already liked"}, status=status.HTTP_204_NO_CONTENT)
+            except Exception as ex:
+                return Response({'message': ex.args[0]})
+        elif request.method == "DELETE":
+            try:
+                customer = Customer.objects.get(user=request.auth.user)
+                customer_like = CustomerProductLike.objects.get(customer_id=customer.id, product_id=pk)
+             
+                customer_like.delete()     
+                return Response({}, status=status.HTTP_204_NO_CONTENT)                        
+            except Exception as ex:
+                return Response({'message': ex.args[0]})
+
+    @action(methods=['get'], detail=False)
+    def liked(self, request):
+        """Recommend products to other users"""
+
+        if request.method == "GET":
+            try:
+                customer = Customer.objects.get(user=request.auth.user)
+                all_customer_likes = CustomerProductLike.objects.filter(customer_id=customer.id)
+                serializer = CustomerProductLikesSerializer(all_customer_likes, many=True, context={'request': request})
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            except Exception as ex:
+                return Response({'message': ex.args[0]})
+   
+
+
+
+            
+
+        
