@@ -322,9 +322,9 @@ class Profile(ViewSet):
                     customer = customer,
                     seller = seller
                 )
-                return Response({'message': 'Seller added to favorites'}, status=status.HTTP_404_NOT_FOUND)
+                return Response({'message': 'Seller added to favorites'}, status=status.HTTP_201_CREATED)
             else:
-                return Response({'message': 'User has already favorited this seller'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                return Response({'message': 'User has already favorited this seller'}, status=status.HTTP_404_NOT_FOUND)
                 
 
 class LineItemSerializer(serializers.HyperlinkedModelSerializer):
