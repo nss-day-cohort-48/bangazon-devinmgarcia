@@ -330,9 +330,9 @@ class Products(ViewSet):
         elif request.method == "DELETE":
             try:
                 customer = Customer.objects.get(user=request.auth.user)
-                all_customer_likes = CustomerProductLike.objects.filter(customer_id=customer.id)
-                like = all_customer_likes.get(product_id=pk)
-                like.delete()     
+                customer_like = CustomerProductLike.objects.get(customer_id=customer.id, product_id=pk)
+             
+                customer_like.delete()     
                 return Response({}, status=status.HTTP_204_NO_CONTENT)                        
             except Exception as ex:
                 return Response({'message': ex.args[0]})
