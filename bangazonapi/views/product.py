@@ -187,6 +187,7 @@ class Products(ViewSet):
         product.description = request.data["description"]
         product.quantity = request.data["quantity"]
         product.created_date = request.data["created_date"]
+        product.location = request.data["location"]
 
         customer = Customer.objects.get(user=request.auth.user)
         product.customer = customer
