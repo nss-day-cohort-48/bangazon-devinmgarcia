@@ -9,17 +9,7 @@
     <h1>Products Under $1000</h1>
 
     {% for product in product_list %}
-        <h2>Product #{{ product.id }}</h2>
-        <li>
-            Customer: {{ product.name }}
-        </li>
-        <li>
-            Product Total: ${{ product.description }}
-        </li>
-        <li>
-            Payment Type: {{ product.price }}
-        </li>  
-        </ol>
+        <h3>#{{product.id}}: {{ product.description }} {{ product.name }} : ${{ product.price }}</h3>
     {% endfor %}
   </body>
 </html>

@@ -14,6 +14,7 @@ def inexpensiveproduct_list(request):
             # Query for all customers, with related user info.
             db_cursor.execute("""
                 SELECT
+                p.id,
                 p.name,
                 p.description,
                 p.price
@@ -37,7 +38,7 @@ def inexpensiveproduct_list(request):
         list_of_inexpensive_products = inexpensive_products.values()
 
         # Specify the Django template and provide data context
-        template = 'orders/list_of_inexpensive_products.html'
+        template = 'products/list_of_inexpensive_products.html'
         context = {
             'product_list': list_of_inexpensive_products
         }
