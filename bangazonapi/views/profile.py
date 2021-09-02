@@ -312,19 +312,13 @@ class Profile(ViewSet):
             return Response(serializer.data)
         elif request.method == "POST":
             customer = Customer.objects.get(user=request.auth.user)
-            seller = Customer.objects.get(pk=request.data["seller"])
-            try:
-                favorite = Favorite.objects.get(seller__id=request.data["seller"], customer=customer)
-            except:
-                favorite = False
-            if not favorite:
-                Favorite.objects.create(
-                    customer = customer,
-                    seller = seller
-                )
-                return Response({'message': 'Seller added to favorites'}, status=status.HTTP_201_CREATED)
-            else:
-                return Response({'message': 'User has already favorited this seller'}, status=status.HTTP_404_NOT_FOUND)
+            seller = Customer.objects.get(pk=request.data["seller"])          
+            Favorite.objects.create(
+                customer = customer,
+                seller = seller
+            )
+            return Response({'message': 'Seller added to favorites'}, status=status.HTTP_201_CREATED)
+        
                 
 
 class LineItemSerializer(serializers.HyperlinkedModelSerializer):
