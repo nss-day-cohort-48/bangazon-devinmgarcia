@@ -52,6 +52,7 @@ class OrderTests(APITestCase):
         self.assertEqual(json_response["id"], 1)
         self.assertEqual(json_response["size"], 1)
         self.assertEqual(len(json_response["lineitems"]), 1)
+        self.assertEqual(json_response['payment_type'], None)
 
 
     def test_remove_product_from_order(self):
