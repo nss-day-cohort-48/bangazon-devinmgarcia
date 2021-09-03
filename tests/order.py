@@ -1,6 +1,8 @@
+from bangazonapi.models.payment import Payment
 import json
 from rest_framework import status
 from rest_framework.test import APITestCase
+from bangazonapi.models import Order
 
 
 class OrderTests(APITestCase):
@@ -29,6 +31,18 @@ class OrderTests(APITestCase):
         response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
+        # Create a payment type
+        url = "/paymenttypes"
+        data = {
+                "merchant_name": "Paypal",
+                "account_number": "000000000000",
+                "expiration_date": "2023-12-12",
+                "create_date": "2020-12-12"
+                }
+        self.client.credentials(HTTP_AUTHORIZATION='Token ' + self.token)
+        response = self.client.post(url, data, format='json')
+        self.payment_type_id = response.data['id']
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
     def test_add_product_to_order(self):
         """
@@ -52,6 +66,7 @@ class OrderTests(APITestCase):
         self.assertEqual(json_response["id"], 1)
         self.assertEqual(json_response["size"], 1)
         self.assertEqual(len(json_response["lineitems"]), 1)
+        self.assertEqual(json_response['payment_type'], None)
 
 
     def test_remove_product_from_order(self):
@@ -79,6 +94,31 @@ class OrderTests(APITestCase):
         self.assertEqual(json_response["size"], 0)
         self.assertEqual(len(json_response["lineitems"]), 0)
 
-    # TODO: Complete order by adding payment type
+    def test_add_payment_type(self):
+        """
+        Ensure we can add a payment type to an order.
+        """
+
+        order = Order()
+        order.customer_id = 1
+        order.payment_type_id = None
+        order.created_date = "2021-09-03"
+        order.save()
+
+        url = f'/orders/{order.id}'
+
+        data = {
+            "customer": order.customer_id,
+            "payment_type_id": self.payment_type_id,
+            "created_date": order.created_date
+        }
+
+        response = self.client.put(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+
+        response = self.client.get(url, None, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        json_response = json.loads(response.content)
+        self.assertEqual(json_response["payment_type"]['url'], "http://testserver/paymenttypes/1")
 
     # TODO: New line item is not added to closed order
