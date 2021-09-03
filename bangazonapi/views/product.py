@@ -1,4 +1,5 @@
 """View module for handling requests about products"""
+from bangazonapi.models.productrating import ProductRating
 from bangazonapi.models.favorite import Favorite
 from rest_framework.decorators import action
 from bangazonapi.models.recommendation import Recommendation
@@ -30,6 +31,13 @@ class CustomerProductLikesSerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomerProductLike
         fields = ('id', 'customer_id', 'product')
+        depth = 2
+
+class RatingSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = ProductRating
+        fields = ('id', 'product', 'customer', 'rating')
         depth = 2
 
 
@@ -361,6 +369,26 @@ class Products(ViewSet):
                 return Response(serializer.data, status=status.HTTP_200_OK)
             except Exception as ex:
                 return Response({'message': ex.args[0]})
+
+    @action(methods=['post', 'get'], detail=True)
+    def rate(self, request, pk=None):
+
+        customer = Customer.objects.get(user=request.auth.user)
+        product = Product.objects.get(pk=pk)
+
+        if request.method == "POST":
+            try:
+                rating = ProductRating.objects.create(
+                    customer = customer,
+                    product = product,
+                    rating = request.data['rating']
+                )
+                serializer = RatingSerializer(rating, many=False, context={'request': request})
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
+            except Exception as ex:
+                return Response({}, status=status.HTTP_404_NOT_FOUND)
+
+
    
 
 
