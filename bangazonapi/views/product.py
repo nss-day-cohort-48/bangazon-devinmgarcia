@@ -370,7 +370,7 @@ class Products(ViewSet):
             except Exception as ex:
                 return Response({'message': ex.args[0]})
 
-    @action(methods=['post', 'get'], detail=False)
+    @action(methods=['post', 'get'], detail=True)
     def rate(self, request, pk=None):
 
         customer = Customer.objects.get(user=request.auth.user)
@@ -383,9 +383,9 @@ class Products(ViewSet):
                     product = product,
                     rating = request.data['rating']
                 )
-                serializer = RatingSerializer(rating, many=True, context={'request': request})
-                return Response(serializer.data)
-            except:
+                serializer = RatingSerializer(rating, many=False, context={'request': request})
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
+            except Exception as ex:
                 return Response({}, status=status.HTTP_404_NOT_FOUND)
 
 

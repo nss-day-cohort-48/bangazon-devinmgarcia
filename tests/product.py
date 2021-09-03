@@ -140,8 +140,16 @@ class ProductTests(APITestCase):
 
         self.client.credentials(HTTP_AUTHORIZATION='Token ' + self.token)
         response = self.client.post(url, rating, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        url = "/products/1"
+
+        self.client.credentials(HTTP_AUTHORIZATION='Token ' + self.token)
+        response = self.client.get(url, None, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         json_response = json.loads(response.content)
+        self.assertEqual(json_response["average_rating"], 5)
+
     
 
 
