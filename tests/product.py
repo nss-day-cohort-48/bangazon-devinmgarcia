@@ -1,9 +1,11 @@
+from bangazonapi.models.customer import Customer
+from rest_framework.response import Response
+from bangazonapi.models.productrating import ProductRating
 import json
 import datetime
-from rest_framework import status
+from rest_framework import serializers, status
 from rest_framework.test import APITestCase
-from bangazonapi.models import Product
-
+from bangazonapi.models import Product, ProductRating, Rating
 
 class ProductTests(APITestCase):
     def setUp(self) -> None:
@@ -126,4 +128,27 @@ class ProductTests(APITestCase):
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
-    # TODO: Product can be rated. Assert average rating exists.
+    def test_rate_product(self):
+        """
+        Ensure that we can rate a product
+        """
+        url = "/products/1/rate"
+
+        rating = {
+            "rating": 5
+        }
+
+        self.client.credentials(HTTP_AUTHORIZATION='Token ' + self.token)
+        response = self.client.post(url, rating, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        json_response = json.loads(response.content)
+    
+
+
+
+
+
+
+
+
+
