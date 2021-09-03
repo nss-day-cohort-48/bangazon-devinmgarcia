@@ -24,22 +24,22 @@ def expensiveproduct_list(request):
 
             dataset = db_cursor.fetchall()
 
-            inexpensive_products = {}
+            expensive_products = {}
 
             for row in dataset:
 
-                inexpensive_products[row['id']] = {}
-                inexpensive_products[row['id']]['id'] = row["id"]
-                inexpensive_products[row['id']]['name'] = row["name"]
-                inexpensive_products[row['id']]['description'] = row["description"]
-                inexpensive_products[row['id']]['price'] = '{0:.2f}'.format(row["price"]) if row["price"] else 0
+                expensive_products[row['id']] = {}
+                expensive_products[row['id']]['id'] = row["id"]
+                expensive_products[row['id']]['name'] = row["name"]
+                expensive_products[row['id']]['description'] = row["description"]
+                expensive_products[row['id']]['price'] = '{0:.2f}'.format(row["price"]) if row["price"] else 0
                 
         # Get only the values from the dictionary and create a list from them
-        list_of_inexpensive_products = inexpensive_products.values()
+        list_of_expensive_products = expensive_products.values()
 
         # Specify the Django template and provide data context
-        template = 'products/list_of_inexpensive_products.html'
+        template = 'products/list_of_expensive_products.html'
         context = {
-            'product_list': list_of_inexpensive_products
+            'product_list': list_of_expensive_products
         }
         return render(request, template, context)
